@@ -6,6 +6,7 @@ import {
 } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
@@ -24,6 +25,13 @@ const angularApp = new AngularNodeAppEngine();
  * ```
  */
 
+app.use('/api', createProxyMiddleware({
+  target: 'https://localhost:7144',
+  secure: false,
+  changeOrigin: true,
+  logger: console
+  })
+);
 /**
  * Serve static files from /browser
  */
