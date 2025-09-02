@@ -21,7 +21,7 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '22.x'
+          node-version: '20.x'
 
       - name: npm install, build, and test
         run: |
@@ -52,4 +52,4 @@ jobs:
           app-name: 'TestAAIfrontend'
           slot-name: 'Production'
           package: .
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FEF1C60964A0474199F4CBE4C481477D }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_3128FFE9CAC747E38F0411BC8373D844 }}
