@@ -59,9 +59,7 @@
                 }
               ],
               "outputHashing": "all",
-              "prerender": {
-                "discoverRoutes": false
-              }
+              "prerender": false
             },
             "development": {
               "fileReplacements": [],
