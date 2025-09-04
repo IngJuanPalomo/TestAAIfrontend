@@ -1,0 +1,55 @@
+name: Deploy Angular 20 SSR to Azure App Service (Linux)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
+  APP_NAME: testaaifrontend-hzegd8e7a7fhfbe8
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install deps (CI)
+        run: npm ci
+
+      - name: Build Angular SSR (catch build-time errors early)
+        run: npm run build:ssr
+
+      # Optional: run unit tests, lint, etc.
+      # - name: Test
+      #   run: npm test -- --watch=false
+
+      - name: Azure login (publish profile)
+        uses: azure/login@v2
+        with:
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+
+      # ─────────────────────────────────────────────────────────────
+      # Deploy SOURCE so App Service Linux (Oryx) installs deps
+      # and runs `npm run build` on the server because we set
+      # SCM_DO_BUILD_DURING_DEPLOYMENT=true in App Settings.
+      # ─────────────────────────────────────────────────────────────
+      - name: Deploy to Azure App Service (Linux)
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.APP_NAME }}
+          package: .
+        env:
+          NODE_ENV: production
+
+      - name: Logout from Azure
+        run: az logout || true
