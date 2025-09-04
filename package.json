@@ -5,9 +5,10 @@
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
+    "build:ssr": "ng build && ng run test-aaifrontend:server",
+    "serve:ssr": "node dist/TestAAIfrontend/server/server.mjs",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "serve:ssr:TestAAIfrontend": "node dist/TestAAIfrontend/server/server.mjs"
+    "test": "ng test"
   },
   "prettier": {
     "printWidth": 100,
