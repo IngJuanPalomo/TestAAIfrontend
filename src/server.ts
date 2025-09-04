@@ -60,7 +60,11 @@ app.use((req, res, next) => {
     .then((response) =>
       response ? writeResponseToNodeResponse(response, res) : next(),
     )
-    .catch(next);
+    .catch((err) => {
+      console.error(`⚠️ SSR error on ${req.url}:`, err.message);
+      // Si falla, devolvemos el index.html vacío para no romper el build
+      res.sendFile(join(browserDistFolder, 'index.html'));
+    });
 });
 
 /**
