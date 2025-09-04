@@ -28,6 +28,8 @@ jobs:
 
       - name: Build Angular SSR (catch build-time errors early)
         run: npm run build:ssr
+        env:
+          NODE_ENV: production
 
       # Optional: run unit tests, lint, etc.
       # - name: Test
