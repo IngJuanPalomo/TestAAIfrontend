@@ -23,33 +23,20 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      # NUEVO: Limpiar caché Angular
+      # Limpia posibles artefactos previos del runner
       - name: Clean Angular cache
-        run: rm -rf .angular
+        run: rm -rf .angular dist || true
 
+      # Instalar dependencias (opcional, Oryx también hará npm install)
       - name: Install deps (CI)
         run: npm ci
-
-      - name: Build Angular SSR (catch build-time errors early)
-        run: npm run build:ssr
-        env:
-          NODE_ENV: production
-
-      # Optional: run unit tests, lint, etc.
-      # - name: Test
-      #   run: npm test -- --watch=false
 
       - name: Azure login (publish profile)
         uses: azure/login@v2
         with:
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
 
-      # ─────────────────────────────────────────────────────────────
-      # Deploy SOURCE so App Service Linux (Oryx) installs deps
-      # and runs `npm run build` on the server because we set
-      # SCM_DO_BUILD_DURING_DEPLOYMENT=true in App Settings.
-      # ─────────────────────────────────────────────────────────────
-      - name: Deploy to Azure App Service (Linux)
+      - name: Deploy source to Azure App Service (let Azure build SSR)
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.APP_NAME }}
