@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: testaaibackend-bcejhxcue5cfaucb
+  AZURE_WEBAPP_NAME: testaaifrontend-hzegd8e7a7fhfbe8
   NODE_VERSION: '20.x'
   API_URL: 'https://testaaibackend-bcejhxcue5cfaucb.westus2-01.azurewebsites.net'
 
