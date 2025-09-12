@@ -1,49 +1,41 @@
-name: Deploy Angular 20 SSR to Azure App Service (Linux)
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy Node.js app to Azure Web App - testaaifrontend-hzegd8e7a
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   workflow_dispatch:
 
 env:
-  AZURE_WEBAPP_NAME: testaaifrontend-hzegd8e7a7fhfbe8
+  AZURE_WEBAPP_NAME: testaaifrontend-hzegd8e7a
   NODE_VERSION: '20.x'
   API_URL: 'https://testaaibackend-bcejhxcue5cfaucb.westus2-01.azurewebsites.net'
-
-permissions:
-  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Clean install dependencies
-      run: npm ci
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: npm install and build
+        run: |
+          npm ci
+          npm run build:ssr
       
-    - name: Build SSR app
-      run: npm run build:ssr
-      env:
-        NODE_ENV: production
-        
-    - name: Upload browser artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: browser-bundle
-        path: dist/TestAAIfrontend/browser
-        
-    - name: Upload server artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: server-bundle
-        path: dist/TestAAIfrontend/server
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-app
+          path: dist/TestAAIfrontend
 
   deploy:
     runs-on: ubuntu-latest
@@ -51,49 +43,19 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
+    
     steps:
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: dist
-        
-    - name: Prepare deployment package
-      run: |
-        mkdir -p deploy
-        mv dist/browser-bundle/* deploy/browser/
-        mv dist/server-bundle/* deploy/server/
-        cp package.json deploy/
-        cp web.config deploy/ || echo "No web.config found"
-        
-    - name: Deploy to Azure Web App
-      id: deploy-to-webapp
-      uses: azure/webapps-deploy@v3
-      with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        package: deploy
-        
-    - name: Configure Azure App Settings
-      uses: azure/appservice-settings@v1
-      with:
-        app-name: ${{ env.AZURE_WEBAPP_NAME }}
-        app-settings-json: |
-          [
-            {
-              "name": "API_URL",
-              "value": "${{ env.API_URL }}",
-              "slotSetting": false
-            },
-            {
-              "name": "NODE_ENV",
-              "value": "production",
-              "slotSetting": false
-            },
-            {
-              "name": "WEBSITE_NODE_DEFAULT_VERSION",
-              "value": "${{ env.NODE_VERSION }}",
-              "slotSetting": false
-            }
-          ]
-        mask-inputs: false
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: node-app
+      
+      - name: 'Deploy to Azure Web App'
+        uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          slot-name: 'Production'
+          package: .
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          startup-command: 'npm run serve:ssr'
